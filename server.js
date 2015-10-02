@@ -1,32 +1,36 @@
 var express = require("express");
 var bodyParser = require("body-parser");
 var mongojs = require("mongojs");
-var db = mongojs("todo", ["users", "tasks"]);
-
+var dbURL = require('./config');
+// console.log(dbURL);
+var db = mongojs(dbURL, ["users", "tasks"], {authMechanism: 'ScramSHA1'});
 var app = express();
-
+// console.log(dbURL);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(__dirname));
 
+
+
 app.get('/users', function (req, res) {
+
   db.users.find(function(error, documents) {
+    if(error !== null) {console.log("Error occurred; error message is: ", error);}
     var mapped = documents.map(function(element) {
       return {id: element._id, username: element.username};
     });
-    console.log(mapped);
-    if(error !== null) {console.log("Error occurred; error message is: ", error);}
+    console.log('this is mapped: ',mapped);
     res.send(mapped);
   });
 });
 
 app.get('/tasks', function (req, res) {
   db.tasks.find(function(error, documents) {
+    if(error !== null) {console.log("Error occurred; error message is: ", error);}
     var mapped = documents.map(function(element) {
       return {id: element._id, title: element.title, description: element.description, creator: element.creator, assignee: element.assignee, status: element.status};
     });
     console.log(mapped);
-    if(error !== null) {console.log("Error occurred; error message is: ", error);}
     res.send(mapped);
   });
 });
